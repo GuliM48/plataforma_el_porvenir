@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     dashboard_username: str = "admin"
     dashboard_password: str = "cambiar_esta_password"  # noqa: S105 - override via .env en producción
 
+    # --- Gemini (Chatbot) ---
+    gemini_api_key: str = ""
+
     # --- Logging ---
     log_level: str = "INFO"
     log_json: bool = True

@@ -15,6 +15,7 @@ import hmac
 import streamlit as st
 
 from config import settings
+from dashboard.i18n import get_text
 from exceptions import AutenticacionError
 from logging_config import configurar_logging
 
@@ -22,24 +23,21 @@ logger = configurar_logging(__name__)
 
 
 def _credenciales_validas(usuario: str, password: str) -> bool:
-    # hmac.compare_digest evita timing attacks en la comparación de strings
     usuario_ok = hmac.compare_digest(usuario, settings.dashboard_username)
     password_ok = hmac.compare_digest(password, settings.dashboard_password)
     return usuario_ok and password_ok
 
 
 def requiere_login() -> None:
-    """Bloquea el resto de la página hasta que el usuario inicie sesión.
-    Llamar al inicio de dashboard/app.py."""
     if st.session_state.get("autenticado"):
         return
 
-    st.title("Iniciar sesión")
-    st.caption("Plataforma de Priorización de Incidentes - El Porvenir")
+    st.title(get_text("login.title"))
+    st.caption(get_text("login.caption"))
     with st.form("login_form"):
-        usuario = st.text_input("Usuario")
-        password = st.text_input("Contraseña", type="password")
-        enviado = st.form_submit_button("Ingresar")
+        usuario = st.text_input(get_text("login.user"))
+        password = st.text_input(get_text("login.pass"), type="password")
+        enviado = st.form_submit_button(get_text("login.btn"))
 
     if enviado:
         if _credenciales_validas(usuario, password):
@@ -49,12 +47,12 @@ def requiere_login() -> None:
             st.rerun()
         else:
             logger.warning("Intento de login fallido para usuario=%s", usuario)
-            st.error("Usuario o contraseña incorrectos.")
+            st.error(get_text("login.error"))
 
-    st.stop()  # detiene la ejecución del resto del script hasta login exitoso
+    st.stop()
 
 
 def cerrar_sesion_boton() -> None:
-    if st.sidebar.button("Cerrar sesión"):
+    if st.sidebar.button(get_text("logout")):
         st.session_state.clear()
         st.rerun()

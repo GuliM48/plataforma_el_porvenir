@@ -1,9 +1,3 @@
-"""
-reports/pdf_report.py
-=======================
-Genera un reporte PDF usando reportlab (platypus): portada, tabla
-comparativa, figuras embebidas, hiperparámetros y pruebas estadísticas.
-"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,9 +6,9 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
-from reportlab.platypus import (Image, PageBreak, Paragraph, SimpleDocTemplate,
-                                 Spacer, Table, TableStyle)
+from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from dashboard.i18n import get_text
 from reports.base import ReportGenerator
 from reports.context import ReportContext
 
@@ -52,30 +46,28 @@ class PDFReportGenerator(ReportGenerator):
     def _portada(self, contexto: ReportContext) -> list:
         return [
             Spacer(1, 4 * cm),
-            Paragraph("Priorización de Incidentes de Seguridad Ciudadana", ESTILOS["TituloPortada"]),
-            Paragraph("El Porvenir, Trujillo", ESTILOS["TituloPortada"]),
+            Paragraph(get_text("reports.cover_title", contexto.lang), ESTILOS["TituloPortada"]),
+            Paragraph(get_text("reports.cover_subtitle", contexto.lang), ESTILOS["TituloPortada"]),
             Spacer(1, 1 * cm),
-            Paragraph("Reporte técnico de entrenamiento y evaluación de modelos", ESTILOS["Subtitulo"]),
+            Paragraph(get_text("reports.cover_desc", contexto.lang), ESTILOS["Subtitulo"]),
             Spacer(1, 0.5 * cm),
-            Paragraph(f"Generado automáticamente el {contexto.fecha_generacion}", ESTILOS["Subtitulo"]),
+            Paragraph(f"{get_text('reports.cover_date', contexto.lang)}{contexto.fecha_generacion}", ESTILOS["Subtitulo"]),
         ]
 
     def _resumen_ejecutivo(self, contexto: ReportContext) -> list:
         mejor = contexto.resumen_entrenamiento.get("mejor_modelo")
         f1 = contexto.resumen_entrenamiento.get("f1_macro_cv_promedio")
         cfg = contexto.resumen_entrenamiento.get("config", {})
+        lang = contexto.lang
         texto = (
-            f"Se entrenaron y compararon 5 modelos de clasificación (3 clásicos: Regresión "
-            f"Logística, Random Forest y LightGBM; 2 híbridos: Stacking con meta-modelo MLP, "
-            f"y una red neuronal MLP optimizada con Algoritmo Genético) para predecir la "
-            f"prioridad (ALTA/MEDIA/BAJA) de incidentes en El Porvenir. La validación se "
-            f"realizó con RepeatedStratifiedKFold (n_splits={cfg.get('n_splits')}, "
+            f"{get_text('reports.executive_summary', lang)} "
+            f"(n_splits={cfg.get('n_splits')}, "
             f"n_repeats={cfg.get('n_repeats')}). "
-            f"<b>El modelo con mejor desempeño promedio fue {mejor} "
+            f"<b>{get_text('reports.executive_best', lang)} {mejor} "
             f"(F1-macro = {f1:.4f}).</b>"
         )
         return [
-            Paragraph("1. Resumen ejecutivo", ESTILOS["Heading1"]),
+            Paragraph(get_text("reports.section1", lang), ESTILOS["Heading1"]),
             Paragraph(texto, ESTILOS["CuerpoJustificado"]),
             Spacer(1, 0.3 * cm),
         ]
@@ -84,8 +76,9 @@ class PDFReportGenerator(ReportGenerator):
         tabla_df = contexto.tabla_comparativa
         metricas = [c for c in tabla_df.columns if c[1] == "mean"]
         mejor_modelo = contexto.resumen_entrenamiento.get("mejor_modelo")
+        lang = contexto.lang
 
-        cabecera = ["Modelo"] + [m[0] for m in metricas]
+        cabecera = [get_text("reports.models_header", lang)] + [m[0] for m in metricas]
         filas = [cabecera]
         for modelo in tabla_df.index:
             fila = [modelo] + [f"{tabla_df.loc[modelo, m]:.4f}" for m in metricas]
@@ -104,16 +97,17 @@ class PDFReportGenerator(ReportGenerator):
                 estilo.append(("BACKGROUND", (0, i), (-1, i), colors.HexColor("#C6EFCE")))
         t.setStyle(TableStyle(estilo))
 
-        return [Paragraph("2. Tabla comparativa de modelos", ESTILOS["Heading1"]), t, Spacer(1, 0.5 * cm)]
+        return [Paragraph(get_text("reports.section2", lang), ESTILOS["Heading1"]), t, Spacer(1, 0.5 * cm)]
 
     def _figuras(self, contexto: ReportContext) -> list:
-        elementos = [Paragraph("3. Figuras", ESTILOS["Heading1"])]
+        lang = contexto.lang
+        elementos = [Paragraph(get_text("reports.section3", lang), ESTILOS["Heading1"])]
         titulos = {
-            "roc": "3.1 Curvas ROC (One-vs-Rest)",
-            "matrices_confusion": "3.2 Matrices de confusión",
-            "importancia_variables": "3.3 Importancia de variables",
-            "comparacion_modelos": "3.4 Comparación de métricas y tiempos",
-            "boxplot_estadistico": "3.5 Distribución de F1-macro por modelo",
+            "roc": get_text("reports.fig_roc", lang),
+            "matrices_confusion": get_text("reports.fig_confusion", lang),
+            "importancia_variables": get_text("reports.fig_importance", lang),
+            "comparacion_modelos": get_text("reports.fig_comparison", lang),
+            "boxplot_estadistico": get_text("reports.fig_boxplot", lang),
         }
         for clave, titulo in titulos.items():
             ruta = contexto.figuras.get(clave)
@@ -125,7 +119,7 @@ class PDFReportGenerator(ReportGenerator):
         return elementos
 
     def _hiperparametros(self, contexto: ReportContext) -> list:
-        elementos = [Paragraph("4. Hiperparámetros óptimos", ESTILOS["Heading1"])]
+        elementos = [Paragraph(get_text("reports.section4", contexto.lang), ESTILOS["Heading1"])]
         for modelo, info in contexto.hiperparametros.items():
             if modelo == "ga_mlp":
                 continue
@@ -134,22 +128,35 @@ class PDFReportGenerator(ReportGenerator):
         return elementos
 
     def _pruebas_estadisticas(self, contexto: ReportContext) -> list:
-        elementos = [Paragraph("5. Validación estadística", ESTILOS["Heading1"])]
+        lang = contexto.lang
+        elementos = [Paragraph(get_text("reports.section5", lang), ESTILOS["Heading1"])]
         friedman = contexto.pruebas_estadisticas["friedman"]
+        sig = (get_text("reports.significant_yes", lang)
+               if friedman["significativo_alpha_0.05"]
+               else get_text("reports.significant_no", lang))
         texto = (
-            f"Prueba de Friedman sobre F1-macro: χ²={friedman['estadistico_chi2']:.4f}, "
+            f"{get_text('reports.friedman_text', lang)}: "
+            f"χ²={friedman['estadistico_chi2']:.4f}, "
             f"p={friedman['p_value']:.4f} "
-            f"({'significativo' if friedman['significativo_alpha_0.05'] else 'no significativo'} "
+            f"({sig} "
             f"a α=0.05, con {friedman['n_folds']} folds)."
         )
         elementos.append(Paragraph(texto, ESTILOS["CuerpoJustificado"]))
         if "advertencia" in friedman:
             elementos.append(Paragraph(f"<i>{friedman['advertencia']}</i>", ESTILOS["CuerpoJustificado"]))
 
-        filas = [["Modelo A", "Modelo B", "p-value", "p-value (Holm)", "Sig."]]
+        filas = [
+            [get_text("reports.wilcoxon_header_a", lang),
+             get_text("reports.wilcoxon_header_b", lang),
+             get_text("reports.wilcoxon_p", lang),
+             get_text("reports.wilcoxon_holm", lang),
+             get_text("reports.wilcoxon_sig", lang)]
+        ]
         for r in contexto.pruebas_estadisticas["wilcoxon_pareado_holm"]:
             filas.append([r["modelo_a"], r["modelo_b"], f"{r['p_value']:.4f}",
-                          f"{r['p_value_holm']:.4f}", "Sí" if r["significativo_holm_0.05"] else "No"])
+                          f"{r['p_value_holm']:.4f}",
+                          get_text("reports.significant_yes", lang) if r["significativo_holm_0.05"]
+                          else get_text("reports.significant_no", lang)])
         t = Table(filas, hAlign="CENTER")
         t.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F4E78")),

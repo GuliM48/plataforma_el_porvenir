@@ -27,9 +27,9 @@ logger = configurar_logging(__name__)
 GENERADORES = [PDFReportGenerator(), ExcelReportGenerator(), WordReportGenerator()]
 
 
-def main():
+def main(lang: str = "es"):
     try:
-        contexto = cargar_contexto_reporte()
+        contexto = cargar_contexto_reporte(lang=lang)
     except PlataformaError as exc:
         logger.error("No se pudo cargar el contexto de reporte: %s", exc.mensaje)
         raise

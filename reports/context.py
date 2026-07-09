@@ -33,6 +33,7 @@ class ReportContext:
     hiperparametros: dict
     pruebas_estadisticas: dict | None
     figuras: dict[str, Path] = field(default_factory=dict)
+    lang: str = "es"
 
 
 def _requerir_archivo(path: Path) -> Path:
@@ -43,7 +44,7 @@ def _requerir_archivo(path: Path) -> Path:
     return path
 
 
-def cargar_contexto_reporte() -> ReportContext:
+def cargar_contexto_reporte(lang: str = "es") -> ReportContext:
     resultados_dir = settings.resultados_dir
     figuras_dir = settings.figuras_dir
 
@@ -80,4 +81,5 @@ def cargar_contexto_reporte() -> ReportContext:
         hiperparametros=hiperparametros,
         pruebas_estadisticas=pruebas,
         figuras=figuras,
+        lang=lang,
     )

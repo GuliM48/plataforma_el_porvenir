@@ -22,6 +22,9 @@ pydantic-settings>=2.0.0
 streamlit>=1.59.0
 plotly>=5.18.0
 
+# --- Chatbot ---
+google-generativeai>=0.8.0
+
 # --- Reportes ---
 python-docx>=1.1.0
 openpyxl>=3.1.0
