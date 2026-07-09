@@ -1,0 +1,50 @@
+EDA - dataset_features.csv (33919 filas, 39 columnas)
+
+=== VALORES FALTANTES ===
+No se encontraron valores nulos en ninguna columna.
+
+=== DETECCIÓN DE OUTLIERS (regla IQR) ===
+dist_hermelinda_km: 56 outliers (0.17%) fuera de [-1.59, 5.14] km
+dist_sanchez_carrion_km: 189 outliers (0.56%) fuera de [-1.19, 4.97] km
+dist_parque_industrial_km: 0 outliers (0.00%) fuera de [-2.72, 8.34] km
+dist_cesar_vallejo_km: 0 outliers (0.00%) fuera de [-2.65, 8.22] km
+
+=== BALANCE DE CLASES ===
+Prioridad (variable objetivo):
+prioridad
+ALTA     0.458
+BAJA     0.349
+MEDIA    0.193
+
+Tipo de delito:
+tipo
+Otros                                      0.371
+Violencia contra la mujer e integrantes    0.268
+Hurto                                      0.142
+Robo                                       0.112
+Extorsión                                  0.082
+Estafa                                     0.023
+Secuestro                                  0.001
+
+=== ESTADÍSTICOS DESCRIPTIVOS (variables numéricas) ===
+            hora  dia_semana        mes  dist_hermelinda_km  dist_sanchez_carrion_km  dist_parque_industrial_km  dist_cesar_vallejo_km  dist_hotspot_mas_cercano_km
+count  33919.000   33919.000  33919.000           33919.000                33919.000                  33919.000              33919.000                    33919.000
+mean      13.740       3.011      6.272               1.864                    1.988                      2.843                  2.910                        0.763
+std        5.954       2.007      3.440               1.120                    1.134                      1.687                  1.679                        0.381
+min        0.000       0.000      1.000               0.009                    0.001                      0.012                  0.007                        0.001
+25%        8.000       1.000      3.000               0.934                    1.118                      1.425                  1.428                        0.486
+50%       14.000       3.000      6.000               1.700                    1.812                      2.569                  2.893                        0.730
+75%       19.000       5.000      9.000               2.619                    2.660                      4.192                  4.144                        0.980
+max       23.000       6.000     12.000               5.865                    5.750                      7.690                  7.376                        3.372
+
+=== MATRIZ DE CORRELACIÓN ===
+                              hora  dia_semana    mes  dist_hermelinda_km  dist_sanchez_carrion_km  dist_parque_industrial_km  dist_cesar_vallejo_km  dist_hotspot_mas_cercano_km  prioridad_encoded
+hora                         1.000       0.006  0.005               0.006                   -0.003                      0.005                 -0.000                        0.003              0.010
+dia_semana                   0.006       1.000  0.002              -0.006                    0.004                     -0.008                  0.008                       -0.001             -0.009
+mes                          0.005       0.002  1.000               0.009                    0.000                      0.007                 -0.007                        0.004             -0.020
+dist_hermelinda_km           0.006      -0.006  0.009               1.000                    0.126                      0.698                 -0.454                        0.256              0.010
+dist_sanchez_carrion_km     -0.003       0.004  0.000               0.126                    1.000                     -0.554                  0.778                        0.241              0.003
+dist_parque_industrial_km    0.005      -0.008  0.007               0.698                   -0.554                      1.000                 -0.927                        0.109              0.007
+dist_cesar_vallejo_km       -0.000       0.008 -0.007              -0.454                    0.778                     -0.927                  1.000                        0.123             -0.002
+dist_hotspot_mas_cercano_km  0.003      -0.001  0.004               0.256                    0.241                      0.109                  0.123                        1.000              0.011
+prioridad_encoded            0.010      -0.009 -0.020               0.010                    0.003                      0.007                 -0.002                        0.011              1.000

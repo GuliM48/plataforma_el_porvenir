@@ -1,0 +1,139 @@
+{
+  "metrica_evaluada": "f1_macro",
+  "mejor_modelo_por_media": "LightGBM",
+  "medias_por_modelo": {
+    "Hibrido1_Stacking_MLP": 0.8577,
+    "Hibrido2_GA_MLP": 0.855,
+    "LightGBM": 0.8603,
+    "Random_Forest": 0.86,
+    "Regresion_Logistica": 0.8599
+  },
+  "friedman": {
+    "metrica_evaluada": "f1_macro",
+    "n_folds": 5,
+    "n_modelos": 5,
+    "estadistico_chi2": 11.519999999999996,
+    "p_value": 0.021301514405484452,
+    "significativo_alpha_0.05": true,
+    "advertencia": "Solo hay 5 folds (bloques). Para Friedman/Nemenyi se recomienda >=10 bloques para tener potencia estadística razonable; con menos, un resultado 'no significativo' puede deberse a falta de potencia y no a que los modelos sean realmente equivalentes. Sube N_REPEATS en train_models.py si tienes más cómputo disponible."
+  },
+  "nemenyi_p_values": {
+    "Hibrido1_Stacking_MLP": {
+      "Hibrido1_Stacking_MLP": 1.0,
+      "Hibrido2_GA_MLP": 0.7514,
+      "LightGBM": 0.4973,
+      "Random_Forest": 0.8555,
+      "Regresion_Logistica": 0.4973
+    },
+    "Hibrido2_GA_MLP": {
+      "Hibrido1_Stacking_MLP": 0.7514,
+      "Hibrido2_GA_MLP": 1.0,
+      "LightGBM": 0.0409,
+      "Random_Forest": 0.1796,
+      "Regresion_Logistica": 0.0409
+    },
+    "LightGBM": {
+      "Hibrido1_Stacking_MLP": 0.4973,
+      "Hibrido2_GA_MLP": 0.0409,
+      "LightGBM": 1.0,
+      "Random_Forest": 0.9751,
+      "Regresion_Logistica": 1.0
+    },
+    "Random_Forest": {
+      "Hibrido1_Stacking_MLP": 0.8555,
+      "Hibrido2_GA_MLP": 0.1796,
+      "LightGBM": 0.9751,
+      "Random_Forest": 1.0,
+      "Regresion_Logistica": 0.9751
+    },
+    "Regresion_Logistica": {
+      "Hibrido1_Stacking_MLP": 0.4973,
+      "Hibrido2_GA_MLP": 0.0409,
+      "LightGBM": 1.0,
+      "Random_Forest": 0.9751,
+      "Regresion_Logistica": 1.0
+    }
+  },
+  "wilcoxon_pareado_holm": [
+    {
+      "modelo_a": "Hibrido1_Stacking_MLP",
+      "modelo_b": "Hibrido2_GA_MLP",
+      "estadistico_wilcoxon": 3.0,
+      "p_value": 0.3125,
+      "p_value_holm": 1.0,
+      "significativo_holm_0.05": false
+    },
+    {
+      "modelo_a": "Hibrido1_Stacking_MLP",
+      "modelo_b": "LightGBM",
+      "estadistico_wilcoxon": 1.0,
+      "p_value": 0.125,
+      "p_value_holm": 0.875,
+      "significativo_holm_0.05": false
+    },
+    {
+      "modelo_a": "Hibrido1_Stacking_MLP",
+      "modelo_b": "Random_Forest",
+      "estadistico_wilcoxon": 3.0,
+      "p_value": 0.3125,
+      "p_value_holm": 1.0,
+      "significativo_holm_0.05": false
+    },
+    {
+      "modelo_a": "Hibrido1_Stacking_MLP",
+      "modelo_b": "Regresion_Logistica",
+      "estadistico_wilcoxon": 4.0,
+      "p_value": 0.4375,
+      "p_value_holm": 1.0,
+      "significativo_holm_0.05": false
+    },
+    {
+      "modelo_a": "Hibrido2_GA_MLP",
+      "modelo_b": "LightGBM",
+      "estadistico_wilcoxon": 0.0,
+      "p_value": 0.0625,
+      "p_value_holm": 0.625,
+      "significativo_holm_0.05": false
+    },
+    {
+      "modelo_a": "Hibrido2_GA_MLP",
+      "modelo_b": "Random_Forest",
+      "estadistico_wilcoxon": 0.0,
+      "p_value": 0.0625,
+      "p_value_holm": 0.625,
+      "significativo_holm_0.05": false
+    },
+    {
+      "modelo_a": "Hibrido2_GA_MLP",
+      "modelo_b": "Regresion_Logistica",
+      "estadistico_wilcoxon": 0.0,
+      "p_value": 0.0625,
+      "p_value_holm": 0.625,
+      "significativo_holm_0.05": false
+    },
+    {
+      "modelo_a": "LightGBM",
+      "modelo_b": "Random_Forest",
+      "estadistico_wilcoxon": 5.0,
+      "p_value": 0.625,
+      "p_value_holm": 1.0,
+      "significativo_holm_0.05": false
+    },
+    {
+      "modelo_a": "LightGBM",
+      "modelo_b": "Regresion_Logistica",
+      "estadistico_wilcoxon": 6.0,
+      "p_value": 0.8125,
+      "p_value_holm": 1.0,
+      "significativo_holm_0.05": false
+    },
+    {
+      "modelo_a": "Random_Forest",
+      "modelo_b": "Regresion_Logistica",
+      "estadistico_wilcoxon": 6.0,
+      "p_value": 0.8125,
+      "p_value_holm": 1.0,
+      "significativo_holm_0.05": false
+    }
+  ]
+}

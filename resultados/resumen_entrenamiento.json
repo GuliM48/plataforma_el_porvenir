@@ -1,0 +1,38 @@
+{
+  "mejor_modelo": "LightGBM",
+  "f1_macro_cv_promedio": 0.8603,
+  "feature_cols": [
+    "hora_sin",
+    "hora_cos",
+    "dia_semana_sin",
+    "dia_semana_cos",
+    "mes_sin",
+    "mes_cos",
+    "es_fin_de_semana",
+    "latitud",
+    "longitud",
+    "dist_hermelinda_km",
+    "dist_sanchez_carrion_km",
+    "dist_parque_industrial_km",
+    "dist_cesar_vallejo_km",
+    "dist_hotspot_mas_cercano_km",
+    "tipo_Estafa",
+    "tipo_Extorsión",
+    "tipo_Hurto",
+    "tipo_Otros",
+    "tipo_Robo",
+    "tipo_Secuestro",
+    "tipo_Violencia contra la mujer e integrantes"
+  ],
+  "class_names": [
+    "ALTA",
+    "MEDIA",
+    "BAJA"
+  ],
+  "config": {
+    "n_splits": 5,
+    "n_repeats": 1,
+    "test_size": 0.2,
+    "random_state": 42
+  }
+}
