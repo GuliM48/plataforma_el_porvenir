@@ -1,0 +1,55 @@
+{
+  "logistic_regression": {
+    "params": {
+      "C": 1.0,
+      "penalty": "l2",
+      "solver": "lbfgs"
+    },
+    "f1_macro_cv": 0.8601927311249091
+  },
+  "random_forest": {
+    "params": {
+      "max_depth": 10,
+      "min_samples_split": 5,
+      "n_estimators": 150
+    },
+    "f1_macro_cv": 0.8604269507483497
+  },
+  "lightgbm": {
+    "params": {
+      "n_estimators": 282,
+      "num_leaves": 23,
+      "learning_rate": 0.012151617026673379,
+      "max_depth": 12,
+      "min_child_samples": 39,
+      "random_state": 42,
+      "verbose": -1,
+      "n_jobs": 1
+    },
+    "f1_macro_cv": 0.859004723847034
+  },
+  "ga_mlp": {
+    "params": {
+      "n_capas": 3,
+      "unidades": 64,
+      "dropout": 0.2,
+      "learning_rate": 0.0005,
+      "activacion": "relu"
+    },
+    "f1_macro_fitness": 0.8725420809668286,
+    "historial_generaciones": [
+      {
+        "generacion": 1,
+        "mejor_fitness": 0.8625676777982321,
+        "promedio_fitness": 0.8523731984209657,
+        "tiempo_s": 9.1
+      },
+      {
+        "generacion": 2,
+        "mejor_fitness": 0.8725420809668286,
+        "promedio_fitness": 0.8607870345186672,
+        "tiempo_s": 9.3
+      }
+    ]
+  }
+}
