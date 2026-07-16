@@ -1,7 +1,10 @@
-import sys
+import importlib
 import os
+import sys
 from pathlib import Path
 import html as html_module
+
+import requests
 import streamlit as st
 from streamlit_float import *
 
@@ -15,75 +18,154 @@ if "float_init_done" not in st.session_state:
     st.session_state.float_init_done = True
 
 
-def _generar_respuesta_gemini(pregunta: str, lang: str) -> str | None:
-    """Intenta generar respuesta con Gemini manejando errores y fallbacks dinámicos."""
-    try:
-        import google.generativeai as genai
-    except ImportError:
-        st.toast("⚠️ Falta instalar: pip install google-generativeai", icon="📦")
-        return None
-
-    # 1. Búsqueda múltiple de la API Key (Settings, Entorno o Secrets de Streamlit)
+def _obtener_api_key_gemini() -> str | None:
+    """Obtiene la API key de Gemini desde settings, entorno o Streamlit secrets."""
     api_key = getattr(settings, "gemini_api_key", None)
     if not api_key:
         api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key and hasattr(st, "secrets") and "GEMINI_API_KEY" in st.secrets:
-        api_key = st.secrets["GEMINI_API_KEY"]
+    if not api_key and hasattr(st, "secrets"):
+        try:
+            api_key = st.secrets.get("GEMINI_API_KEY")
+        except Exception:
+            api_key = None
 
-    # Si realmente no hay llave configurada, vamos pacíficamente a las palabras clave
-    if not api_key or str(api_key).strip() == "":
+    if isinstance(api_key, str):
+        api_key = api_key.strip()
+    return api_key or None
+
+
+def _generar_respuesta_gemini_http(pregunta: str, lang: str, api_key: str) -> str | None:
+    """Usa la API REST de Gemini cuando el SDK no está disponible o falla."""
+    system_prompt = (
+        "Eres un asistente especializado en un dashboard de priorización de incidentes de seguridad ciudadana "
+        "en El Porvenir, Trujillo. Responde SOLO preguntas relacionadas con las funcionalidades del dashboard: "
+        "predicción en vivo, comparación de modelos, curvas ROC, matrices de confusión, importancia de variables, "
+        "heatmaps, pruebas estadísticas, y generación de reportes. Sé conciso y útil. Si la pregunta no está "
+        "relacionada con el dashboard, responde amablemente que solo puedes ayudar con el dashboard."
+        if lang == "es" else
+        "You are a specialized assistant for a citizen security incident prioritization dashboard in "
+        "El Porvenir, Trujillo. Answer ONLY questions related to the dashboard features: "
+        "live prediction, model comparison, ROC curves, confusion matrices, feature importance, "
+        "heatmaps, statistical tests, and report generation. Be concise and helpful. If the question is "
+        "not related to the dashboard, politely respond that you can only help with the dashboard."
+    )
+
+    # Lista limpia únicamente con modelos estables oficiales (evita errores 404 por modelos retirados)
+    modelos_a_probar = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.5-pro"]
+    ultimo_error = ""
+
+    for model_name in modelos_a_probar:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"role": "user", "parts": [{"text": f"{system_prompt}\n\nPregunta: {pregunta}"}]}],
+                "generationConfig": {
+                    "temperature": 0.3,
+                    "maxOutputTokens": 500,
+                },
+            }
+            response = requests.post(url, json=payload, timeout=30)
+            
+            # Si el modelo no se encuentra (404), saltamos al siguiente modelo de la lista
+            if response.status_code == 404:
+                print(f"⚠️ Modelo no encontrado por REST (404): {model_name}. Probando siguiente...")
+                continue
+                
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get("candidates"):
+                parts = data["candidates"][0].get("content", {}).get("parts", [])
+                for part in parts:
+                    if isinstance(part, dict) and part.get("text"):
+                        return part["text"].strip()
+
+            if data.get("error"):
+                ultimo_error = data["error"].get("message", "")
+                
+        except requests.exceptions.HTTPError as e:
+            # Capturamos el mensaje real del servidor de Google
+            try:
+                error_data = e.response.json()
+                ultimo_error = error_data.get("error", {}).get("message", str(e))
+            except Exception:
+                ultimo_error = str(e)
+                
+            # Si es un error de API Key (400 o 403), no tiene sentido seguir probando modelos
+            if e.response.status_code in (400, 403):
+                print(f"❌ Error crítico de API Key ({e.response.status_code}): {ultimo_error}")
+                break
+                
+        except Exception as e:
+            ultimo_error = str(e)
+
+    if ultimo_error:
+        print(f"❌ Error definitivo de API Gemini (REST): {ultimo_error}")
+        st.toast(f"⚠️ Error en Gemini: {ultimo_error[:65]}...", icon="🚨")
+    return None
+
+
+def _generar_respuesta_gemini(pregunta: str, lang: str) -> str | None:
+    """Intenta generar respuesta con Gemini usando SDK si está disponible y REST como fallback."""
+    api_key = _obtener_api_key_gemini()
+    if not api_key:
         return None
 
     try:
-        genai.configure(api_key=str(api_key).strip())
-        
-        system_prompt = (
-            "Eres un asistente especializado en un dashboard de priorización de incidentes de seguridad ciudadana "
-            "en El Porvenir, Trujillo. Responde SOLO preguntas relacionadas con las funcionalidades del dashboard: "
-            "predicción en vivo, comparación de modelos, curvas ROC, matrices de confusión, importancia de variables, "
-            "heatmaps, pruebas estadísticas, y generación de reportes. Sé conciso y útil. Si la pregunta no está "
-            "relacionada con el dashboard, responde amablemente que solo puedes ayudar con el dashboard."
-            if lang == "es" else
-            "You are a specialized assistant for a citizen security incident prioritization dashboard in "
-            "El Porvenir, Trujillo. Answer ONLY questions related to the dashboard features: "
-            "live prediction, model comparison, ROC curves, confusion matrices, feature importance, "
-            "heatmaps, statistical tests, and report generation. Be concise and helpful. If the question is "
-            "not related to the dashboard, politely respond that you can only help with the dashboard."
-        )
+        genai = importlib.import_module("google.generativeai")
+    except Exception:
+        genai = None
 
-        # 2. Intentamos en cascada con los identificadores más estables del SDK
-        modelos_a_probar = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-2.0-flash", "gemini-pro"]
-        
-        ultimo_error = ""
-        for model_name in modelos_a_probar:
-            try:
-                model = genai.GenerativeModel(
-                    model_name,
-                    system_instruction=system_prompt,
-                )
-                response = model.generate_content(
-                    pregunta,
-                    generation_config=genai.types.GenerationConfig(
-                        max_output_tokens=500,
-                        temperature=0.3,
-                    ),
-                )
-                if response and response.text:
-                    return response.text.strip()
-            except Exception as e:
-                ultimo_error = str(e)
-                continue
-        
-        # Si ningún modelo funcionó, notificamos el error exacto
-        if ultimo_error:
-            print(f"❌ Error de API Gemini (Modelos): {ultimo_error}")
-            st.toast(f"⚠️ Error en Gemini: {ultimo_error[:65]}...", icon="🚨")
-        return None
+    if genai is not None:
+        try:
+            genai.configure(api_key=api_key)
+            system_prompt = (
+                "Eres un asistente especializado en un dashboard de priorización de incidentes de seguridad ciudadana "
+                "en El Porvenir, Trujillo. Responde SOLO preguntas relacionadas con las funcionalidades del dashboard: "
+                "predicción en vivo, comparación de modelos, curvas ROC, matrices de confusión, importancia de variables, "
+                "heatmaps, pruebas estadísticas, y generación de reportes. Sé conciso y útil. Si la pregunta no está "
+                "relacionada con el dashboard, responde amablemente que solo puedes ayudar con el dashboard."
+                if lang == "es" else
+                "You are a specialized assistant for a citizen security incident prioritization dashboard in "
+                "El Porvenir, Trujillo. Answer ONLY questions related to the dashboard features: "
+                "live prediction, model comparison, ROC curves, confusion matrices, feature importance, "
+                "heatmaps, statistical tests, and report generation. Be concise and helpful. If the question is "
+                "not related to the dashboard, politely respond that you can only help with the dashboard."
+            )
 
-    except Exception as e:
-        print(f"❌ Error general en Gemini: {e}")
-        st.toast(f"⚠️ Error de API Key o Conexión: {str(e)[:65]}...", icon="🚨")
-        return None
+            # Lista estandarizada sin etiquetas -latest ni -exp
+            modelos_a_probar = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.5-pro"]
+            ultimo_error = ""
+            for model_name in modelos_a_probar:
+                try:
+                    model = genai.GenerativeModel(
+                        model_name,
+                        system_instruction=system_prompt,
+                    )
+                    response = model.generate_content(
+                        pregunta,
+                        generation_config=genai.types.GenerationConfig(
+                            max_output_tokens=500,
+                            temperature=0.3,
+                        ),
+                    )
+                    if response and getattr(response, "text", None):
+                        return response.text.strip()
+                except Exception as e:
+                    error_str = str(e)
+                    # Si es error 404 (NotFound), probamos el siguiente modelo
+                    if "404" in error_str or "not found" in error_str.lower():
+                        print(f"⚠️ Modelo no encontrado en SDK: {model_name}. Probando siguiente...")
+                        continue
+                    ultimo_error = error_str
+                    break
+
+            if ultimo_error:
+                print(f"⚠️ Fallo en SDK de Gemini: {ultimo_error}. Pasando a fallback REST...")
+        except Exception as e:
+            print(f"⚠️ Error general en SDK de Gemini: {e}. Pasando a fallback REST...")
+
+    return _generar_respuesta_gemini_http(pregunta, lang, api_key)
 
 
 def _generar_respuesta_keyword(pregunta: str, lang: str) -> str:
