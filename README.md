@@ -83,6 +83,11 @@ ml-pipeline/
 - **Configuración por `.env`**: ninguna ruta ni credencial hardcodeada;
   `config.py` centraliza todo vía `pydantic-settings`.
 
+**Demo Dashboard analítico y de monitoreo territorial**: https://porvenirprediccionincidentes.streamlit.app
+**User** : admin
+**Password**: admin
+**API de inferencia y servicios backend**: https://plataforma-el-porvenir.onrender.com
+
 ## Instalación
 
 ```bash
